@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello google maps</title>
+  <!-- google map api -->
+  <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=<<<PERSONAL_API_KEY>>>&sensor=false"></script>
+</head>
+<script type="text/javascript">
+  $(document).ready(function(){
+    var citymap = [];
+    var cityCircle;
+    var address = "<<MAIN_CENTER_ADDRESS>>"
+
+    // call geocode
+    var geocoder = new google.maps.Geocoder();
+
+    // called map's option
+    var mapOptions = {
+      center: new google.maps.LatLng(37.542172, 127.210335),
+      zoom: 13,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    // Call map
+    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);    
+    var data = []
+
+    // using django template tag to pull data
+    {% for each in address_and_usercount %}
+    data.push({'address':'{{ each.address }}', 'usercount':'{{ each.usercount }}'});
+    {% endfor %}
+
+    var cnt = 0;
+
+    // show statistical data on map
+    var index = 0;
+    for(var i = 0; i < data.length; i++) {
+      geocoder.geocode( {'address':data[i].address}, function(results, status){
+       if(status == google.maps.GeocoderStatus.OK){
+         var loc = results[0].geometry.location;
+
+         var populationOptions = {
+           strokeColor: "#FF0000",
+           strokeOpacity: 0.8,
+           strokeWeight: 2,
+           fillColor: "#FF0000",
+           fillOpacity: 0.35,
+           map: map,
+           center: new google.maps.LatLng(loc.k, loc.D),
+           radius: parseInt(data[index++].usercount),
+         }
+         // draw circle using overlay in API
+         cityCircle = new google.maps.Circle(populationOptions);          
+       }
+     });
+    }
+  });
+</script>
+<body>
+<div class="outer_border">
+    <div class="map_canvas_class" id="map_canvas"></div>
+  </div>
+</body>
+</html>
